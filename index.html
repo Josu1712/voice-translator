@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Translator</title>
+</head>
+<body>
+    <h1 class="title">Voice Translator</h1>
+    <div class="root">
+        <div id="transript" class="transcript">
+            <div>
+                <p id="langA" class="title">ID</p>
+                <p id="text" class="text"></p>
+            </div>
+            <div>
+                <p id="langB" class="title">EN</p>
+                <p id="result" class="text"></p>
+            </div>
+        </div>
+        <div>
+            <div class="main">
+                <select class="lang" name="lang" id="baseLang" onchange="elementChange()">
+                    <option value="id">Bahasa Indonesia</option>
+                    <option value="en">English</option>
+                </select>
+                <p class="target"> >>> </p>
+                <select class="lang" name="lang" id="translatedLang" onchange="elementChange()">
+                    <option value="en">English</option>
+                    <option value="id">Bahasa Indonesia</option>
+                </select>
+            </div>
+            <div class="recorder">
+                <button id="buttonRecorder" class="buttonRecorder" onclick="onRecord()">Record</button>
+            </div>
+        </div>
+
+
+    </div>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        *{
+
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+        }
+        :root {
+            --background-color: #ffffff;
+            --text-color: #000000;
+        }
+        body{
+            background: linear-gradient(270deg, #fe6262, #ff9400);
+            background-size: 400% 400%;
+            animation: anime 5s ease infinite;
+        }
+
+        .root {
+            border-radius: 5px;
+            margin: auto;
+            background-color: var(--background-color);
+            width: 90%;
+        }
+        .body {
+            margin: 0;
+        }
+        .title {
+            display: flex;
+            justify-content: center;
+            margin: 0;
+        }
+        .main {
+            margin: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .target {
+            padding: 10px;
+        }
+        .transcript {
+            border-radius: 5px;
+            padding: 10px;
+            
+            background: var(--background-color);
+            margin: auto;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .text {
+            border: 2px solid #757575;
+            overflow: auto;
+            padding: 10px;
+            margin: 10px; 
+            height: 23vh;
+            border-radius: 6px;
+            color: var(--text-color);
+        }
+        .lang {
+            background: linear-gradient(270deg, #fe6262, #ff9400);
+            background-size: 400% 400%;
+            animation: anime 5s ease infinite;
+            width: 100%;
+            border: 2px solid #757575;
+            color: var(--text-color);
+            border-radius: 5px;
+            padding: 10px;
+        }
+        .recorder {
+            border-radius: 5px;
+            padding:10px;
+            margin: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .buttonRecorder{
+            width: 100%;
+            border: 2px solid #757575;
+            color: var(--text-color);
+            background: linear-gradient(270deg, #fe6262, #ff9400);
+            background-size: 400% 400%;
+            animation: anime 5s ease infinite;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        @keyframes anime {
+            0%{background-position:0% 50%}
+            50%{background-position:100% 50%}
+            100%{background-position:0% 50%}
+        }
+        </style>
+
+    <script>
+        
+        let record = true
+        let stopRecord;
+        let baseLang = document.getElementById("baseLang").value; 
+        let translatedLang = document.getElementById("translatedLang").value;
+        let targetLang = document.getElementById("translatedLang").value;
+        let recognition = new webkitSpeechRecognition();
+        
+        recognition.lang = baseLang;
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+        recognition.onresult = function(event) {
+            for (let i = 0;i < event.results.length;i++){
+                const finalResult = event.results[i]
+                
+            }
+            const text = Array.from(event.results)
+            .map(finalResult => finalResult[0])
+            .map(finalResult => finalResult.transcript)
+            .join('')
+
+            document.getElementById("text").innerHTML = text;
+            let url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl="+ baseLang + "&tl=" + translatedLang + "&dt=t&q=" + text;
+            fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("result").innerHTML = data[0][0][0];
+            })
+            .catch(error => {
+                console.log(error)
+            })
+        }
+
+        function elementChange() {
+            let baseLanguageA = document.getElementById("baseLang");
+            let baseLanguageValueA = baseLanguageA.value;
+            document.getElementById("langA").innerHTML = baseLanguageValueA.toUpperCase();
+            baseLang = baseLanguageValueA
+            
+            let baseLanguageB = document.getElementById("translatedLang")
+            let baseLanguageValueB = baseLanguageB.value;
+            document.getElementById("langB").innerHTML = baseLanguageValueB.toUpperCase();
+            translatedLang = baseLanguageValueB
+        }
+
+        function intervalReset() {
+            
+        }
+        
+        function onRecord() {
+            elementChange();
+            if (record) {
+                console.log(`Translate ${baseLang.toUpperCase()} to ${translatedLang.toUpperCase()}`)
+                setInterval(recognition.stop(),5000)
+                setInterval(recognition.start(),5100)
+                record = false;
+                document.getElementById("buttonRecorder").innerHTML = "Stop";
+            } else {
+                recognition.stop();
+                record = true;
+                document.getElementById("buttonRecorder").innerHTML = "Record";
+            }
+        }
+    </script>
+</body>
+</html>
